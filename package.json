@@ -1,27 +1,22 @@
 {
   "name": "backend-course-2025-6",
   "version": "1.0.0",
-  "description": "",
+  "description": "Лабораторна робота — Node.js CLI і веб-сервер",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Angelina2322/backend-course-2025-6.git"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Angelina bc2025-6",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Angelina2322/backend-course-2025-6/issues"
-  },
-  "homepage": "https://github.com/Angelina2322/backend-course-2025-6#readme",
   "dependencies": {
-    "commander": "^14.0.2",
-    "superagent": "^10.2.3"
+    "commander": "^12.1.0",
+    "superagent": "^9.0.2"
   },
   "devDependencies": {
-    "nodemon": "^3.1.11"
+    "nodemon": "^3.1.0"
   }
 }
+
