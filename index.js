@@ -1,4 +1,3 @@
-// index.js
 import { Command } from "commander";
 import express from "express";
 import multer from "multer";
@@ -15,7 +14,7 @@ program
 program.parse(process.argv);
 const options = program.opts();
 
-// ✅ Перевіряємо директорію кешу
+// Перевіряємо директорію кешу
 if (!fs.existsSync(options.cache)) {
   console.log(`Cache directory not found. Creating: ${options.cache}`);
   fs.mkdirSync(options.cache, { recursive: true });
@@ -24,7 +23,10 @@ if (!fs.existsSync(options.cache)) {
 // ===================== EXPRESS SERVER =====================
 const app = express();
 
-// Для обробки JSON у PUT/POST
+// Дозволяємо відкривати файли з public/
+app.use(express.static("public"));
+
+// Для обробки JSON і форм
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -41,11 +43,11 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // ===================== БАЗА ДАНИХ В ПАМ'ЯТІ =====================
-let inventory = []; // Зберігаємо об'єкти {id, inventory_name, description, photo}
+let inventory = [];
 
 // ===================== ЕНДПОІНТИ =====================
 
-// POST /register — реєстрація нового пристрою
+// POST /register
 app.post("/register", upload.single("photo"), (req, res) => {
   const { inventory_name, description } = req.body;
   if (!inventory_name) {
@@ -63,19 +65,19 @@ app.post("/register", upload.single("photo"), (req, res) => {
   res.status(201).json(newItem);
 });
 
-// GET /inventory — список всіх речей
+// GET /inventory
 app.get("/inventory", (req, res) => {
   res.json(inventory);
 });
 
-// GET /inventory/:id — інформація про конкретну річ
+// GET /inventory/:id
 app.get("/inventory/:id", (req, res) => {
   const item = inventory.find(i => i.id === parseInt(req.params.id));
   if (!item) return res.status(404).json({ error: "Not found" });
   res.json(item);
 });
 
-// PUT /inventory/:id — оновлення імені або опису
+// PUT /inventory/:id
 app.put("/inventory/:id", (req, res) => {
   const item = inventory.find(i => i.id === parseInt(req.params.id));
   if (!item) return res.status(404).json({ error: "Not found" });
@@ -87,7 +89,7 @@ app.put("/inventory/:id", (req, res) => {
   res.json(item);
 });
 
-// GET /inventory/:id/photo — отримання фото
+// GET /inventory/:id/photo
 app.get("/inventory/:id/photo", (req, res) => {
   const item = inventory.find(i => i.id === parseInt(req.params.id));
   if (!item || !item.photo) return res.status(404).json({ error: "Not found" });
@@ -98,7 +100,7 @@ app.get("/inventory/:id/photo", (req, res) => {
   res.sendFile(photoPath, { headers: { "Content-Type": "image/jpeg" } });
 });
 
-// PUT /inventory/:id/photo — оновлення фото
+// PUT /inventory/:id/photo
 app.put("/inventory/:id/photo", upload.single("photo"), (req, res) => {
   const item = inventory.find(i => i.id === parseInt(req.params.id));
   if (!item) return res.status(404).json({ error: "Not found" });
@@ -108,7 +110,7 @@ app.put("/inventory/:id/photo", upload.single("photo"), (req, res) => {
   res.json(item);
 });
 
-// DELETE /inventory/:id — видалення
+// DELETE /inventory/:id
 app.delete("/inventory/:id", (req, res) => {
   const index = inventory.findIndex(i => i.id === parseInt(req.params.id));
   if (index === -1) return res.status(404).json({ error: "Not found" });
@@ -117,7 +119,20 @@ app.delete("/inventory/:id", (req, res) => {
   res.json(deleted[0]);
 });
 
-// ===================== 405 для всіх інших методів =====================
+// POST /search
+app.post("/search", (req, res) => {
+  const { id, has_photo } = req.body;
+  const item = inventory.find(i => i.id === parseInt(id));
+  if (!item) return res.status(404).json({ error: "Not found" });
+
+  let result = { ...item };
+  if (has_photo && item.photo) {
+    result.photo_url = `/inventory/${item.id}/photo`;
+  }
+  res.json(result);
+});
+
+// 405 для всіх інших
 app.all("*", (req, res) => {
   res.status(405).json({ error: "Method not allowed" });
 });
